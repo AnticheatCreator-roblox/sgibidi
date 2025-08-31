@@ -4,7 +4,6 @@ import requests
 app = Flask(__name__)
 
 def client_ip():
-    # Prefer proxy headers if you run behind Cloudflare/Nginx
     if request.headers.get("CF-Connecting-IP"):
         return request.headers.get("CF-Connecting-IP")
     if request.headers.get("X-Forwarded-For"):
@@ -21,9 +20,21 @@ def geo_lookup(ip=None):
         return {"error": data.get("message", "lookup failed")}
     return data
 
+def save_to_file(data):
+    """把訪問者資訊寫進 things.txt (追加模式)"""
+    with open("things.txt", "a", encoding="utf-8") as f:
+        f.write(
+            f"IP: {data.get('query')}, "
+            f"Country: {data.get('country')}, "
+            f"Region: {data.get('regionName')}, "
+            f"City: {data.get('city')}, "
+            f"ISP: {data.get('isp')}\n"
+        )
+
 @app.route("/")
 def home():
     data = geo_lookup()
+    save_to_file(data)  # 寫進檔案
     return (
         f"Your Public IP: {data.get('query')}\n"
         f"Country: {data.get('country')}\n"
@@ -34,11 +45,14 @@ def home():
 
 @app.route("/json")
 def as_json():
-    return jsonify(geo_lookup())
+    data = geo_lookup()
+    save_to_file(data)  # 寫進檔案
+    return jsonify(data)
 
 @app.route("/txt")
 def as_txt():
     data = geo_lookup()
+    save_to_file(data)  # 寫進檔案
     return (data.get("query","unknown") + "\n", 200, {"Content-Type":"text/plain; charset=utf-8"})
 
 if __name__ == "__main__":
