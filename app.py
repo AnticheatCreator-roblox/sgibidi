@@ -7,7 +7,7 @@ from psycopg2.extras import RealDictCursor
 app = Flask(__name__)
 
 DB_URL = os.getenv("DATABASE_URL")
-
+#skibidi
 def db_conn():
     return psycopg2.connect(DB_URL)
 
@@ -103,3 +103,4 @@ def stats():
 if __name__ == "__main__":
     # 本地測試用；在 Render 會用 gunicorn 啟動
     app.run(host="0.0.0.0", port=8000)
+
